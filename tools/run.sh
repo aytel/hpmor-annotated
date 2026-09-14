@@ -24,4 +24,5 @@ $P pack_epub.py         # манифест EPUB 3, обложка, сборка 
 $P build_fb2.py         # маркеры и <body name="notes">
 
 $P verify_all.py        # структура и целостность ссылок
+$P verify_fb2.py        # fb2 по официальной схеме FictionBook
 $P verify_text.py       # текст книги изменился только там, где задумано

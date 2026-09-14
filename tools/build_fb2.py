@@ -51,10 +51,25 @@ def main():
         nb.append(f'<section id="n{n["num"]}"><title><p>{n["num"]}</p></title>'
                   f'<p>{render(n["text"], "fb2")}</p></section>')
     nb.append('</body>')
+    # в исходнике <annotation> стоит после <lang>, а схема требует её сразу
+    # за <book-title>. Строгий парсер на этом спотыкается — переставляем.
+    ann = re.search(r'\s*<annotation>.*?</annotation>', raw, re.S)
+    if ann and raw.index('<lang>') < ann.start():
+        raw = raw[:ann.start()] + raw[ann.end():]
+        block = ann.group(0).strip()
+        # в аннотации исходника голый текст, а схема требует блочные элементы
+        inner = re.sub(r'</?annotation>', '', block).strip()
+        if '<p>' not in inner:
+            block = '<annotation><p>' + re.sub(r'\s+', ' ', inner) + '</p></annotation>'
+        raw = re.sub(r'(</book-title>)', lambda x: x.group(1) + '\n' + block, raw, count=1)
     raw = re.sub(r'<book-title>.*?</book-title>',
                  '<book-title>Гарри Поттер и методы рационального мышления '
                  '(с комментариями)</book-title>', raw, count=1)
-    raw = raw.replace('</FictionBook>', "\n".join(nb) + '\n</FictionBook>')
+    # по схеме FictionBook порядок жёсткий: description, затем все body, и лишь
+    # потом binary. Тело сносок вставляем перед картинками, а не в конец файла.
+    m = re.search(r'\n?<binary\b', raw)
+    at = m.start() if m else raw.index('</FictionBook>')
+    raw = raw[:at] + "\n" + "\n".join(nb) + "\n" + raw[at:]
     open(DEST, "w", encoding="utf-8").write(raw)
     print(f'{DEST}  {os.path.getsize(DEST)/1e6:.2f} МБ, сносок {len(notes)}')
 
