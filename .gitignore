@@ -1,0 +1,6 @@
+# Промежуточные результаты прогона tools/run.sh — всё пересоздаётся из исходников.
+tools/ep/
+tools/out_epub/
+tools/*.json
+tools/fb2__0.jpg
+tools/__pycache__/
